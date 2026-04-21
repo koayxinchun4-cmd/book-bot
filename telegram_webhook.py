@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Telegram Bot Webhook 服務
-接收並處理群組訊息，自動回覆書籍推薦指令
+Telegram bot webhook service.
+Receives and processes Telegram messages, then replies with book recommendations.
 """
 
 from flask import Flask, request, jsonify
@@ -18,102 +18,102 @@ if not BOT_TOKEN:
 
 API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
-# 書籍資料庫
+# Book catalog
 BOOKS = [
     {
-        "title": "原子習慣",
-        "author": "詹姆斯·克利爾",
-        "category": "自我成長",
-        "description": "微小改變如何產生巨大成效",
-        "quote": "習慣是自我改進的複利。",
+        "title": "Atomic Habits",
+        "author": "James Clear",
+        "category": "Self-Improvement",
+        "description": "How tiny changes produce remarkable results",
+        "quote": "Habits are the compound interest of self-improvement.",
         "link": "https://www.goodreads.com/book/show/40121378-atomic-habits",
     },
     {
-        "title": "深度工作",
-        "author": "卡爾·紐波特",
-        "category": "效率提升",
-        "description": "如何在分心的世界保持專注",
-        "quote": "專注於少數重要的事情，拒絕無價值的忙碌。",
+        "title": "Deep Work",
+        "author": "Cal Newport",
+        "category": "Productivity",
+        "description": "How to stay focused in a distracted world",
+        "quote": "Focus on what matters and reject low-value busyness.",
         "link": "https://www.calnewport.com/books/deep-work/",
     },
     {
-        "title": "窮爸爸富爸爸",
-        "author": "羅伯特·清崎",
-        "category": "理財",
-        "description": "財務智商的九堂課",
-        "quote": "窮人為錢工作，富人讓錢為他們工作。",
+        "title": "Rich Dad Poor Dad",
+        "author": "Robert Kiyosaki",
+        "category": "Personal Finance",
+        "description": "Lessons on building financial intelligence",
+        "quote": "The poor work for money; the rich make money work for them.",
         "link": "https://www.richdad.com/",
     },
     {
-        "title": "人類大歷史",
-        "author": "哈拉瑞",
-        "category": "歷史",
-        "description": "從動物到上帝的旅程",
-        "quote": "智人之所以能征服世界，是因為獨特語言讓我們能談論虛構的事物。",
+        "title": "Sapiens",
+        "author": "Yuval Noah Harari",
+        "category": "History",
+        "description": "A brief history of humankind",
+        "quote": "Shared stories let humans cooperate at massive scale.",
         "link": "https://www.ynharari.com/book/sapiens/",
     },
     {
-        "title": "心流",
-        "author": "米哈里·契克森米哈伊",
-        "category": "心理學",
-        "description": "最優體驗的心理學",
-        "quote": "當挑戰與技能完美匹配時，就會進入心流狀態。",
+        "title": "Flow",
+        "author": "Mihaly Csikszentmihalyi",
+        "category": "Psychology",
+        "description": "The psychology of optimal experience",
+        "quote": "Flow appears when challenge and skill are in balance.",
         "link": "https://www.amazon.com/Flow-Psychology-Experience-Mihaly-Csikszentmihalyi/dp/0061339202",
     },
     {
-        "title": "黑天鵝效應",
-        "author": "納西姆·塔勒布",
-        "category": "思考方式",
-        "description": "如何面對不可預測的未來",
-        "quote": "我們熱衷於統計和預測，卻忽略了罕見事件的力量。",
-        "link": "https://www.nassimnicholas.com/books/the-black-swans",
+        "title": "The Black Swan",
+        "author": "Nassim Nicholas Taleb",
+        "category": "Decision-Making",
+        "description": "How to think about rare and unpredictable events",
+        "quote": "Rare events can dominate history more than we expect.",
+        "link": "https://www.nassimnicholas.com/books/the-black-swan/",
     },
     {
-        "title": "原則",
-        "author": "瑞·達利歐",
-        "category": "商業",
-        "description": "生活和工作的一般原則",
-        "quote": "理解現實如何運作，是做出良好決策的基礎。",
+        "title": "Principles",
+        "author": "Ray Dalio",
+        "category": "Business",
+        "description": "Core principles for life and work",
+        "quote": "Understanding reality is the foundation of good decisions.",
         "link": "https://www.principles.com/",
     },
     {
-        "title": "快思慢想",
-        "author": "丹尼爾·卡尼曼",
-        "category": "心理學",
-        "description": "思考，快與慢",
-        "quote": "系統一快速、本能；系統二緩慢、理性。",
+        "title": "Thinking, Fast and Slow",
+        "author": "Daniel Kahneman",
+        "category": "Psychology",
+        "description": "An exploration of two systems of thinking",
+        "quote": "System 1 is fast and intuitive; System 2 is slow and analytical.",
         "link": "https://books.wwnorton.com/books/9780374533557/",
     },
     {
-        "title": "刻意練習",
-        "author": "安德斯·艾瑞克森",
-        "category": "自我成長",
-        "description": "如何從新手到大師",
-        "quote": "天才不是天生，而是刻意練習的結果。",
-        "link": "https://peaks卓越圖書.com/book/peak/",
+        "title": "Peak",
+        "author": "Anders Ericsson",
+        "category": "Self-Improvement",
+        "description": "How deliberate practice builds expertise",
+        "quote": "Great performance is built, not born.",
+        "link": "https://www.hmhbooks.com/shop/books/peak/9780544947221",
     },
     {
-        "title": "華頓商學院最受歡迎的談判課",
-        "author": "史都華·戴蒙",
-        "category": "溝通",
-        "description": "如何在任何談判中獲得更好的結果",
-        "quote": "談判的目標不是戰勝對方，而是滿足雙方的需求。",
+        "title": "Getting More",
+        "author": "Stuart Diamond",
+        "category": "Communication",
+        "description": "Practical methods for better negotiation outcomes",
+        "quote": "Negotiation should solve needs, not defeat people.",
         "link": "https://www.whartonhamburg.com/the-wharton-executive-negotiation-workshop/",
     },
     {
-        "title": "被討厭的勇氣",
-        "author": "岸見一郎 & 古賀史健",
-        "category": "心理學",
-        "description": "阿德勒心理學的勇氣之書",
-        "quote": "你的不幸，是自己選擇的。",
+        "title": "The Courage to Be Disliked",
+        "author": "Ichiro Kishimi & Fumitake Koga",
+        "category": "Psychology",
+        "description": "An Adlerian perspective on freedom and growth",
+        "quote": "You can choose your present and your direction forward.",
         "link": "https://www.bookmall.com.tw/9789861371858",
     },
     {
-        "title": "牧羊少年奇幻之旅",
-        "author": "保羅·科爾賀",
-        "category": "文學",
-        "description": "追尋你的個人傳奇",
-        "quote": "當你真心渴望某樣東西時，整個宇宙都會聯合起來幫助你。",
+        "title": "The Alchemist",
+        "author": "Paulo Coelho",
+        "category": "Literature",
+        "description": "A fable about pursuing your personal legend",
+        "quote": "When you truly want something, the world helps you pursue it.",
         "link": "https://www.paulocoelhoblog.com/the-alchemist/",
     },
 ]
@@ -125,7 +125,7 @@ def get_random_book():
 
 def format_book_message(book):
     message = f"""
-📚 *每日書籍推薦*
+📚 *Daily Book Recommendation*
 ━━━━━━━━━━━━━━━
 📖 *{book['title']}*
 ✍️ {book['author']}
@@ -133,13 +133,13 @@ def format_book_message(book):
 ━━━━━━━━━━━━━━━
 💡 {book['description']}
 ━━━━━━━━━━━━━━━
-📜 *金句*
+📜 *Quote*
 「{book['quote']}」
 ━━━━━━━━━━━━━━━
-🔗 了解更多
+🔗 Learn more
 {book['link']}
 ━━━━━━━━━━━━━━━
-🌟 每天進步一點點！"""
+🌟 Progress a little every day!"""
     return message.strip()
 
 
@@ -155,15 +155,15 @@ def send_message(chat_id, text, reply_to_message_id=None):
 def webhook():
     data = request.get_json(silent=True) or {}
 
-    # 檢查是否有訊息
+    # Check whether the update contains a message
     if 'message' in data:
         message = data['message']
         chat_id = message['chat']['id']
         text = message.get('text', '')
         message_id = message.get('message_id')
 
-        # 檢查是否為推薦指令
-        if text in ['發書', '書', '推薦', '/book']:
+        # Recommendation triggers (English + legacy Chinese aliases)
+        if text.lower() in ['book', 'recommend', '/book', '發書', '書', '推薦']:
             book = get_random_book()
             reply = format_book_message(book)
             send_message(chat_id, reply, message_id)
@@ -171,17 +171,17 @@ def webhook():
 
         if text in ['/start', '/help']:
             help_text = (
-                "👋 歡迎使用 Book Bot！\n"
-                "可用指令：\n"
-                "- 發書 / 書 / 推薦 /book：隨機推薦一本書\n"
-                "- /help：顯示說明"
+                "👋 Welcome to Book Bot!\n"
+                "Available commands:\n"
+                "- book / recommend /book: get a random book recommendation\n"
+                "- /help: show this help message"
             )
             send_message(chat_id, help_text, message_id)
             return jsonify({"ok": True, "help": True})
 
-        # 自動回覆其他訊息
+        # Auto-reply to other non-command messages
         if text and not text.startswith('/'):
-            reply = "👋 嗨！輸入「發書」或「書」獲得書籍推薦！"
+            reply = "👋 Hi! Type `book` or `recommend` to get a recommendation."
             send_message(chat_id, reply, message_id)
             return jsonify({"ok": True, "replied": True})
 

@@ -1,59 +1,59 @@
 # book-bot
 
-進階版 `book-bot`：以 Telegram Webhook 為核心的書籍推薦機器人。
+An upgraded `book-bot`: a Telegram webhook-based book recommendation bot.
 
-## 功能
+## Features
 
-- 隨機書籍推薦（輸入：`發書`、`書`、`推薦`、`/book`）
-- 指令說明（`/start`、`/help`）
-- 健康檢查端點（`GET /health`）
-- Webhook 訊息接收（`POST /webhook`）
+- Random book recommendations (`book`, `recommend`, `/book`, plus legacy Chinese commands).
+- Command help (`/start`, `/help`).
+- Health check endpoint (`GET /health`).
+- Webhook receiver (`POST /webhook`).
 
-## 快速開始
+## Quick Start
 
-### 1) 安裝套件
+### 1) Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2) 設定環境變數
+### 2) Configure environment variables
 
-請先建立 `.env`（或直接在部署平台設定環境變數）：
+Create a `.env` file (or set variables directly on your deployment platform):
 
 ```bash
-BOT_TOKEN=你的_telegram_bot_token
+BOT_TOKEN=your_telegram_bot_token
 PORT=5000
 ```
 
-> ⚠️ `BOT_TOKEN` 必填，程式啟動時若未設定會直接報錯。
+> ⚠️ `BOT_TOKEN` is required. The app will fail fast at startup if missing.
 
-### 3) 啟動服務
+### 3) Start the service
 
 ```bash
 python telegram_webhook.py
 ```
 
-## API 路由
+## API Routes
 
-- `POST /webhook`：Telegram webhook 入口
-- `GET /health`：服務健康檢查
+- `POST /webhook`: Telegram webhook entry point.
+- `GET /health`: Service health check.
 
-## 下一步升級路線（建議）
+## Suggested Next Upgrades
 
-建議優先順序：
+Recommended priority:
 
-1. **Telegram 實戰化（最高優先）**
-   - 新增搜尋書籍（Open Library）與查詢歷史
-   - 把書單改為資料庫（SQLite / Postgres）
-2. **推薦系統智慧化**
-   - 從「隨機推薦」升級為「偏好 + 歷史」推薦
-3. **部署與可觀測性**
-   - 部署到 Render / Railway
-   - 加入結構化 logging 與錯誤告警
-4. **Web 管理後台（可選）**
-   - 使用 Flask/FastAPI 提供管理頁面（書單、分類、統計）
+1. **Production-ready Telegram experience (highest priority)**
+   - Add book search (Open Library) and user history.
+   - Move the static list to a database (SQLite/Postgres).
+2. **Smarter recommendation system**
+   - Upgrade from random recommendations to preference + history based recommendations.
+3. **Deployment and observability**
+   - Deploy to Render or Railway.
+   - Add structured logging and alerting.
+4. **Web admin panel (optional)**
+   - Add a Flask/FastAPI admin UI for books, categories, and statistics.
 
-## 安全提醒
+## Security Note
 
-請勿把 bot token 寫死在程式碼中，務必透過環境變數管理。
+Never hardcode your bot token in source code. Always use environment variables.
